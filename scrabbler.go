@@ -1,7 +1,18 @@
 package scrabble
 
-type Finder interface {
-	FindWord(letters []rune) string
+import "errors"
+
+type FinderEngine interface {
+	// FindWord finds possible  words from given data
+	// letters - user's letters
+	// word - one of a word from board
+	FindWord(letters []rune, word string) []Word
+
+	// Put checks if word can be placed and returns value of placed word
+	Put(word map[Cord]rune) (int, error)
+}
+
+type GameEngine interface {
 }
 
 type Cord struct {
@@ -10,7 +21,11 @@ type Cord struct {
 }
 
 type Board struct {
-	Letters map[Cord]string
+	Letters map[Cord]rune
+}
+
+func NewBoard() *Board {
+	return &Board{map[Cord]rune{}}
 }
 
 type Word struct {
@@ -47,3 +62,15 @@ var LetterValue = map[rune]int{
 	'y': 4,
 	'z': 10,
 }
+
+type Direction int
+
+const (
+	DirDown  = Direction(0)
+	DirRight = Direction(1)
+)
+
+var (
+	ErrPlateOccupied    = errors.New("plate occupied")
+	ErrInvalidDirection = errors.New("invalid direction")
+)

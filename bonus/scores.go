@@ -9,6 +9,10 @@ const (
 	TripleMultiplier = Multiplier(3)
 )
 
+func (m Multiplier) Int() int {
+	return int(m)
+}
+
 type Type string
 
 const (
@@ -17,9 +21,9 @@ const (
 )
 
 type Bonus struct {
-	multiplier Multiplier
-	bonusType  Type
-	used       bool
+	Multiplier Multiplier
+	BonusType  Type
+	Used       bool
 }
 
 var Cords = map[scrabble.Cord]Bonus{

@@ -1,4 +1,4 @@
-package finder
+package common
 
 import (
 	"bufio"
@@ -7,11 +7,11 @@ import (
 	"scrabble"
 )
 
-func (w *Words) LoadWordsDirectory() error {
-	logger := w.log.WithField("method", "LoadWordsDirectory")
+func LoadWordsDirectory() ([]scrabble.Word, error) {
+	var dict []scrabble.Word
 	f, err := os.Open("/home/kamil/go/src/scrabble/finder/words.txt")
 	if err != nil {
-		return fmt.Errorf("failed to open word.txt")
+		return nil, fmt.Errorf("failed to open word.txt")
 	}
 	defer f.Close()
 
@@ -22,7 +22,7 @@ func (w *Words) LoadWordsDirectory() error {
 		if histogram == nil {
 			continue
 		}
-		w.Dictionary = append(w.Dictionary, scrabble.Word{
+		dict = append(dict, scrabble.Word{
 			Meaning:   word,
 			Histogram: histogram,
 			Value:     wordToValue(word),
@@ -30,11 +30,10 @@ func (w *Words) LoadWordsDirectory() error {
 	}
 
 	if err := scanner.Err(); err != nil {
-		logger.Error(err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return dict, nil
 }
 
 func wordToHistogram(word string) map[rune]int {
