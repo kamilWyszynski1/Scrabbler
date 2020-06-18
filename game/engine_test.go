@@ -5,10 +5,12 @@ import (
 	"scrabble"
 	"scrabble/bonus"
 	"testing"
+
+	"github.com/sirupsen/logrus"
 )
 
 func Test_findWordCreated(t *testing.T) {
-	engine, _ := NewGameEngine()
+	engine, _ := NewGameEngine(logrus.New())
 	letters := make(map[scrabble.Cord]rune)
 	for i := -scrabble.Dimension; i <= scrabble.Dimension; i += 1 {
 		for j := -scrabble.Dimension; j <= scrabble.Dimension; j += 1 {
@@ -36,7 +38,7 @@ func Test_findWordCreated(t *testing.T) {
 }
 
 func TestEngine_calcRows(t *testing.T) {
-	engine, _ := NewGameEngine()
+	engine, _ := NewGameEngine(logrus.New())
 	engine.Dictionary = append(engine.Dictionary, scrabble.Word{
 		Meaning:   "cxb",
 		Histogram: nil,
@@ -160,45 +162,21 @@ func TestEngine_Put(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	e, _ := NewGameEngine()
+	e, _ := NewGameEngine(logrus.New())
 	e.Dictionary = append(e.Dictionary, dictionary...)
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := e.Put(tt.args.word)
+			got, err := e.Put(scrabble.PutRequest{tt.args.word})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Put() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			prettyPrintBoard(e.Board.Letters)
+			PrettyPrintBoard(e.Board.Letters)
 			if got != tt.want {
 				t.Errorf("Put() got = %v, want %v", got, tt.want)
 			}
 		})
-	}
-}
-
-const (
-	InfoColor    = "\033[1;34m%s  \033[0m"
-	NoticeColor  = "\033[1;36m%s  \033[0m"
-	WarningColor = "\033[1;33m%s  \033[0m"
-	ErrorColor   = "\033[1;31m%s  \033[0m"
-	DebugColor   = "\033[0;36m%s  \033[0m"
-)
-
-func prettyPrintBoard(board map[scrabble.Cord]rune) {
-	fmt.Println("-7 -6 -5 -4 -3 -2 -1  0  1  2  3  4  5  6  7")
-	for i := -scrabble.Dimension; i <= scrabble.Dimension; i += 1 {
-		row := ""
-		for j := -scrabble.Dimension; j <= scrabble.Dimension; j += 1 {
-			cord := scrabble.Cord{j, i}
-			if v, _ := board[cord]; v == 0 {
-				row += fmt.Sprintf(InfoColor, "0")
-			} else {
-				row += fmt.Sprintf(ErrorColor, string(v))
-			}
-		}
-		fmt.Println(row)
 	}
 }
 

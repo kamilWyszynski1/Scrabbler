@@ -1,6 +1,10 @@
 package scrabble
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+)
 
 const Dimension = int(7)
 
@@ -13,7 +17,7 @@ type FinderEngine interface {
 
 type GameEngine interface {
 	// Put checks if word can be placed and returns value of placed word
-	Put(word []PlacedPlate) (int, error)
+	Put(word PutRequest) (int, error)
 }
 
 type Cord struct {
@@ -23,7 +27,26 @@ type Cord struct {
 
 // PlacedPlate is structure used to distinguished placed letters on board
 type PlacedPlate struct {
-	Letter rune
+	Letter rune `json:"letter"`
+	Cord
+}
+
+func (p *PlacedPlate) Unmarshal(data []byte) error {
+	var v []interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	fmt.Println(p)
+	return nil
+}
+
+type PutRequest struct {
+	Plates []PlacedPlateRequest `json:"plates"`
+}
+
+// only from http communication
+type PlacedPlateRequest struct {
+	Letter string `json:"letter"`
 	Cord
 }
 

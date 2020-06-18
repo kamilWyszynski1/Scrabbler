@@ -16,7 +16,8 @@ type Engine struct {
 	Multipliers map[scrabble.Cord]bonus.Bonus
 }
 
-func NewEmptyBoard() *scrabble.Board {
+// newEmptyBoard initialize new, clean board
+func newEmptyBoard() *scrabble.Board {
 	var board scrabble.Board
 	letters := make(map[scrabble.Cord]rune)
 	bonusOccupied := make(map[scrabble.Cord]bool)
@@ -31,10 +32,11 @@ func NewEmptyBoard() *scrabble.Board {
 	return &board
 }
 
-func NewGameEngine() (*Engine, error) {
+// NewGameEngine is constructor function
+func NewGameEngine(log logrus.FieldLogger) (*Engine, error) {
 	engine := Engine{
-		log:         logrus.New().WithField("service", "GameEngine"),
-		Board:       NewEmptyBoard(),
+		log:         log.WithField("service", "GameEngine"),
+		Board:       newEmptyBoard(),
 		Multipliers: bonus.Cords,
 	}
 
@@ -46,8 +48,22 @@ func NewGameEngine() (*Engine, error) {
 	return &engine, nil
 }
 
-func (e *Engine) Put(word []scrabble.PlacedPlate) (int, error) {
+// Put method checks if plates can be put, if placed plates create valid words
+// at last it counts points and returns result
+func (e *Engine) Put(wordReq scrabble.PutRequest) (int, error) {
+	var word []scrabble.PlacedPlate
+	for _, letter := range wordReq.Plates {
+		word = append(word, scrabble.PlacedPlate{
+			Letter: rune(letter.Letter[0]),
+			Cord:   letter.Cord,
+		})
+	}
+	fmt.Println(word)
+
+	defer PrettyPrintBoard(e.Board.Letters)
+
 	if !e.canBePut(word) {
+		e.log.Error(scrabble.ErrPlateOccupied)
 		return 0, scrabble.ErrPlateOccupied
 	}
 
@@ -57,12 +73,14 @@ func (e *Engine) Put(word []scrabble.PlacedPlate) (int, error) {
 
 	points, err := e.calcRows(word, minX, minY, maxY)
 	if err != nil {
+		e.log.WithError(err).Error("failed to calculate row")
 		return 0, fmt.Errorf("failed to calculate row, %w", err)
 	}
 	pointSum += points
 
 	points, err = e.calcCols(word, minY, minX, maxX)
 	if err != nil {
+		e.log.WithError(err).Error("failed to calculate column")
 		return 0, fmt.Errorf("failed to calculate column, %w", err)
 	}
 	pointSum += points
@@ -77,7 +95,13 @@ func (e *Engine) Put(word []scrabble.PlacedPlate) (int, error) {
 }
 
 func (e Engine) canBePut(word []scrabble.PlacedPlate) bool {
+	cordsInPlacedPlates := map[scrabble.Cord]struct{}{}
+
 	for _, w := range word {
+		if _, ok := cordsInPlacedPlates[w.Cord]; ok {
+			return false
+		}
+		cordsInPlacedPlates[w.Cord] = struct{}{}
 		if v, ok := e.Board.Letters[w.Cord]; ok {
 			if v != 0 {
 				return false
@@ -113,4 +137,28 @@ func findCordsRange(word []scrabble.PlacedPlate) (minX, maxX, minY, maxY int) {
 		}
 	}
 	return
+}
+
+const (
+	InfoColor    = "\033[1;34m%s  \033[0m"
+	NoticeColor  = "\033[1;36m%s  \033[0m"
+	WarningColor = "\033[1;33m%s  \033[0m"
+	ErrorColor   = "\033[1;31m%s  \033[0m"
+	DebugColor   = "\033[0;36m%s  \033[0m"
+)
+
+func PrettyPrintBoard(board map[scrabble.Cord]rune) {
+	fmt.Println("-7 -6 -5 -4 -3 -2 -1  0  1  2  3  4  5  6  7")
+	for i := -scrabble.Dimension; i <= scrabble.Dimension; i += 1 {
+		row := ""
+		for j := -scrabble.Dimension; j <= scrabble.Dimension; j += 1 {
+			cord := scrabble.Cord{j, i}
+			if v, _ := board[cord]; v == 0 {
+				row += fmt.Sprintf(InfoColor, "0")
+			} else {
+				row += fmt.Sprintf(ErrorColor, string(v))
+			}
+		}
+		fmt.Println(row)
+	}
 }
