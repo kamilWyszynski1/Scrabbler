@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"os"
 	"scrabble"
+	"strings"
 )
 
 func LoadWordsDirectory() ([]scrabble.Word, error) {
 	var dict []scrabble.Word
-	f, err := os.Open("/home/kamil/go/src/scrabble/finder/words.txt")
+	f, err := os.Open("/home/kamil/go/src/scrabble/common/words.txt")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open word.txt")
 	}
@@ -17,16 +18,8 @@ func LoadWordsDirectory() ([]scrabble.Word, error) {
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		word := scanner.Text()
-		histogram := wordToHistogram(word)
-		if histogram == nil {
-			continue
-		}
-		dict = append(dict, scrabble.Word{
-			Meaning:   word,
-			Histogram: histogram,
-			Value:     wordToValue(word),
-		})
+		word := strings.ToLower(scanner.Text())
+		dict = append(dict, StringToScrabbleWord(word))
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -47,10 +40,9 @@ func wordToHistogram(word string) map[rune]int {
 	return histogram
 }
 
-func wordToValue(word string) int {
-	var value int
-	for _, letter := range word {
-		value += scrabble.LetterValue[letter]
+func StringToScrabbleWord(str string) scrabble.Word {
+	return scrabble.Word{
+		Meaning:   str,
+		Histogram: wordToHistogram(str),
 	}
-	return value
 }

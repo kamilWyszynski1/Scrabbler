@@ -1,6 +1,9 @@
 package bonus
 
-import "scrabble"
+import (
+	"fmt"
+	"scrabble"
+)
 
 type Multiplier int
 
@@ -24,6 +27,46 @@ type Bonus struct {
 	Multiplier Multiplier
 	BonusType  Type
 	Used       bool
+}
+
+func (b Bonus) ToStringColor() string {
+	switch b.Multiplier {
+	case DoubleMultiplier:
+		switch b.BonusType {
+		case WordBonusType:
+			return fmt.Sprintf("\033[1;31m%s  \033[0m", "DW")
+		case LetterBonusType:
+			return fmt.Sprintf("\u001B[1;34m%s  \u001B[0m", "DL")
+		}
+	case TripleMultiplier:
+		switch b.BonusType {
+		case WordBonusType:
+			return fmt.Sprintf("\033[1;33m%s  \033[0m", "TW")
+		case LetterBonusType:
+			return fmt.Sprintf("\u001B[1;36m%s  \u001B[0m", "TL")
+		}
+	}
+	return ""
+}
+
+func (b Bonus) ToString() string {
+	switch b.Multiplier {
+	case DoubleMultiplier:
+		switch b.BonusType {
+		case WordBonusType:
+			return fmt.Sprintf("%s  ", "DW")
+		case LetterBonusType:
+			return fmt.Sprintf("%s  ", "DL")
+		}
+	case TripleMultiplier:
+		switch b.BonusType {
+		case WordBonusType:
+			return fmt.Sprintf("%s  ", "TW")
+		case LetterBonusType:
+			return fmt.Sprintf("%s  ", "TL")
+		}
+	}
+	return ""
 }
 
 var Cords = map[scrabble.Cord]Bonus{

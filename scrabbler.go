@@ -2,17 +2,18 @@ package scrabble
 
 import "errors"
 
+const Dimension = int(7)
+
 type FinderEngine interface {
 	// FindWord finds possible  words from given data
 	// letters - user's letters
 	// word - one of a word from board
 	FindWord(letters []rune, word string) []Word
-
-	// Put checks if word can be placed and returns value of placed word
-	Put(word map[Cord]rune) (int, error)
 }
 
 type GameEngine interface {
+	// Put checks if word can be placed and returns value of placed word
+	Put(word []PlacedPlate) (int, error)
 }
 
 type Cord struct {
@@ -20,18 +21,28 @@ type Cord struct {
 	Y int
 }
 
-type Board struct {
-	Letters map[Cord]rune
+// PlacedPlate is structure used to distinguished placed letters on board
+type PlacedPlate struct {
+	Letter rune
+	Cord
 }
 
-func NewBoard() *Board {
-	return &Board{map[Cord]rune{}}
+type Board struct {
+	Letters       map[Cord]rune
+	BonusOccupied map[Cord]bool
 }
+
+func (b *Board) SetLetter(plate PlacedPlate) { b.Letters[plate.Cord] = plate.Letter }
+
+func (b *Board) SetBonusOccupied(cord Cord) { b.BonusOccupied[cord] = true }
 
 type Word struct {
 	Meaning   string
 	Histogram map[rune]int
-	Value     int
+}
+
+func (w Word) IsEqaul(w2 Word) bool {
+	return w.Meaning == w2.Meaning
 }
 
 var LetterValue = map[rune]int{
@@ -71,6 +82,5 @@ const (
 )
 
 var (
-	ErrPlateOccupied    = errors.New("plate occupied")
-	ErrInvalidDirection = errors.New("invalid direction")
+	ErrPlateOccupied = errors.New("plate is already occupied!")
 )
