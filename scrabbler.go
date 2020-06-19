@@ -53,6 +53,7 @@ type PlacedPlateRequest struct {
 type Board struct {
 	Letters       map[Cord]rune
 	BonusOccupied map[Cord]bool
+	IsEmpty       bool
 }
 
 func (b *Board) SetLetter(plate PlacedPlate) { b.Letters[plate.Cord] = plate.Letter }
@@ -105,5 +106,5 @@ const (
 )
 
 var (
-	ErrPlateOccupied = errors.New("plate is already occupied!")
+	ErrWrongPlatesSetup = errors.New("cannot be placed!")
 )

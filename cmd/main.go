@@ -12,7 +12,9 @@ import (
 )
 
 func main() {
-	engine, err := game.NewGameEngine(logrus.New())
+	log := logrus.New()
+	log.SetLevel(logrus.DebugLevel)
+	engine, err := game.NewGameEngine(log)
 	if err != nil {
 		panic(err)
 	}
@@ -37,5 +39,7 @@ func main() {
 			return
 		}
 	})
-	http.ListenAndServe(":8080", r)
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		log.Panic(err)
+	}
 }

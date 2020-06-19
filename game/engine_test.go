@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"scrabble"
 	"scrabble/bonus"
+	"scrabble/common"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -88,7 +89,7 @@ func TestEngine_Put(t *testing.T) {
 		{Meaning: "aaayo", Histogram: nil},
 	}
 	type args struct {
-		word []scrabble.PlacedPlate
+		word []scrabble.PlacedPlateRequest
 	}
 	tests := []struct {
 		name    string
@@ -98,20 +99,20 @@ func TestEngine_Put(t *testing.T) {
 	}{
 		{
 			name: "aaa",
-			args: args{word: []scrabble.PlacedPlate{
-				{Letter: 'a', Cord: scrabble.Cord{0, 0}},
-				{Letter: 'a', Cord: scrabble.Cord{1, 0}},
-				{Letter: 'a', Cord: scrabble.Cord{2, 0}},
+			args: args{word: []scrabble.PlacedPlateRequest{
+				{Letter: "a", Cord: scrabble.Cord{0, 0}},
+				{Letter: "a", Cord: scrabble.Cord{1, 0}},
+				{Letter: "a", Cord: scrabble.Cord{2, 0}},
 			}},
 			want: 3,
 		},
 		{
 			name: "ccc",
 			args: args{
-				[]scrabble.PlacedPlate{
-					{Letter: 'c', Cord: scrabble.Cord{0, 1}},
-					{Letter: 'c', Cord: scrabble.Cord{0, 2}},
-					{Letter: 'c', Cord: scrabble.Cord{0, 3}},
+				[]scrabble.PlacedPlateRequest{
+					{Letter: "c", Cord: scrabble.Cord{0, 1}},
+					{Letter: "c", Cord: scrabble.Cord{0, 2}},
+					{Letter: "c", Cord: scrabble.Cord{0, 3}},
 				},
 			},
 			want: 10,
@@ -119,10 +120,10 @@ func TestEngine_Put(t *testing.T) {
 		{
 			name: "bbb",
 			args: args{
-				[]scrabble.PlacedPlate{
-					{Letter: 'b', Cord: scrabble.Cord{2, 1}},
-					{Letter: 'b', Cord: scrabble.Cord{2, 2}},
-					{Letter: 'b', Cord: scrabble.Cord{2, 3}},
+				[]scrabble.PlacedPlateRequest{
+					{Letter: "b", Cord: scrabble.Cord{2, 1}},
+					{Letter: "b", Cord: scrabble.Cord{2, 2}},
+					{Letter: "b", Cord: scrabble.Cord{2, 3}},
 				},
 			},
 			want: 16,
@@ -130,9 +131,9 @@ func TestEngine_Put(t *testing.T) {
 		{
 			name: "xx",
 			args: args{
-				[]scrabble.PlacedPlate{
-					{Letter: 'x', Cord: scrabble.Cord{1, 1}},
-					{Letter: 'x', Cord: scrabble.Cord{1, 2}},
+				[]scrabble.PlacedPlateRequest{
+					{Letter: "x", Cord: scrabble.Cord{1, 1}},
+					{Letter: "x", Cord: scrabble.Cord{1, 2}},
 				},
 			},
 			want: 61,
@@ -140,10 +141,10 @@ func TestEngine_Put(t *testing.T) {
 		{
 			name: "yyg",
 			args: args{
-				[]scrabble.PlacedPlate{
-					{Letter: 'y', Cord: scrabble.Cord{3, 0}},
-					{Letter: 'y', Cord: scrabble.Cord{3, 1}},
-					{Letter: 'g', Cord: scrabble.Cord{3, 2}},
+				[]scrabble.PlacedPlateRequest{
+					{Letter: "y", Cord: scrabble.Cord{3, 0}},
+					{Letter: "y", Cord: scrabble.Cord{3, 1}},
+					{Letter: "g", Cord: scrabble.Cord{3, 2}},
 				},
 			},
 			want:    51,
@@ -152,10 +153,10 @@ func TestEngine_Put(t *testing.T) {
 		{
 			name: "elo",
 			args: args{
-				[]scrabble.PlacedPlate{
-					{Letter: 'e', Cord: scrabble.Cord{4, -2}},
-					{Letter: 'l', Cord: scrabble.Cord{4, -1}},
-					{Letter: 'o', Cord: scrabble.Cord{4, 0}},
+				[]scrabble.PlacedPlateRequest{
+					{Letter: "e", Cord: scrabble.Cord{4, -2}},
+					{Letter: "l", Cord: scrabble.Cord{4, -1}},
+					{Letter: "o", Cord: scrabble.Cord{4, 0}},
 				},
 			},
 			want:    13,
@@ -172,7 +173,7 @@ func TestEngine_Put(t *testing.T) {
 				t.Errorf("Put() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			PrettyPrintBoard(e.Board.Letters)
+			common.PrettyPrintBoard(e.Board.Letters)
 			if got != tt.want {
 				t.Errorf("Put() got = %v, want %v", got, tt.want)
 			}

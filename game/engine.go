@@ -29,6 +29,7 @@ func newEmptyBoard() *scrabble.Board {
 	}
 	board.Letters = letters
 	board.BonusOccupied = bonusOccupied
+	board.IsEmpty = true
 	return &board
 }
 
@@ -58,13 +59,12 @@ func (e *Engine) Put(wordReq scrabble.PutRequest) (int, error) {
 			Cord:   letter.Cord,
 		})
 	}
-	fmt.Println(word)
 
-	defer PrettyPrintBoard(e.Board.Letters)
+	defer common.PrettyPrintBoard(e.Board.Letters)
 
 	if !e.canBePut(word) {
-		e.log.Error(scrabble.ErrPlateOccupied)
-		return 0, scrabble.ErrPlateOccupied
+		e.log.Error(scrabble.ErrWrongPlatesSetup)
+		return 0, scrabble.ErrWrongPlatesSetup
 	}
 
 	minX, maxX, minY, maxY := findCordsRange(word)
@@ -91,33 +91,11 @@ func (e *Engine) Put(wordReq scrabble.PutRequest) (int, error) {
 		e.Board.SetBonusOccupied(w.Cord)
 	}
 
+	if e.Board.IsEmpty {
+		e.Board.IsEmpty = false
+	}
+
 	return pointSum, nil
-}
-
-func (e Engine) canBePut(word []scrabble.PlacedPlate) bool {
-	cordsInPlacedPlates := map[scrabble.Cord]struct{}{}
-
-	for _, w := range word {
-		if _, ok := cordsInPlacedPlates[w.Cord]; ok {
-			return false
-		}
-		cordsInPlacedPlates[w.Cord] = struct{}{}
-		if v, ok := e.Board.Letters[w.Cord]; ok {
-			if v != 0 {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func (e Engine) isValidWord(word string) bool {
-	for _, dictWord := range e.Dictionary {
-		if word == dictWord.Meaning {
-			return true
-		}
-	}
-	return false
 }
 
 func findCordsRange(word []scrabble.PlacedPlate) (minX, maxX, minY, maxY int) {
@@ -137,28 +115,4 @@ func findCordsRange(word []scrabble.PlacedPlate) (minX, maxX, minY, maxY int) {
 		}
 	}
 	return
-}
-
-const (
-	InfoColor    = "\033[1;34m%s  \033[0m"
-	NoticeColor  = "\033[1;36m%s  \033[0m"
-	WarningColor = "\033[1;33m%s  \033[0m"
-	ErrorColor   = "\033[1;31m%s  \033[0m"
-	DebugColor   = "\033[0;36m%s  \033[0m"
-)
-
-func PrettyPrintBoard(board map[scrabble.Cord]rune) {
-	fmt.Println("-7 -6 -5 -4 -3 -2 -1  0  1  2  3  4  5  6  7")
-	for i := -scrabble.Dimension; i <= scrabble.Dimension; i += 1 {
-		row := ""
-		for j := -scrabble.Dimension; j <= scrabble.Dimension; j += 1 {
-			cord := scrabble.Cord{j, i}
-			if v, _ := board[cord]; v == 0 {
-				row += fmt.Sprintf(InfoColor, "0")
-			} else {
-				row += fmt.Sprintf(ErrorColor, string(v))
-			}
-		}
-		fmt.Println(row)
-	}
 }
